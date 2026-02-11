@@ -1,49 +1,28 @@
-"""Streaming chat completion via x402 gateway.
+"""Async streaming chat completion.
 
-Usage:
-    EVM_PRIVATE_KEY="0x..." python examples/streaming.py
-    MNEMONIC="word1 word2 ..." python examples/streaming.py
+Usage: EVM_PRIVATE_KEY="0x..." python examples/streaming.py
 """
-
-from __future__ import annotations
 
 import asyncio
 import os
-import sys
 
 from x402_openai import AsyncX402OpenAI
-
-model = os.environ.get("MODEL", "gpt-4o-mini")
+from x402_openai.wallets import EvmWallet
 
 
 async def main() -> None:
-    client = AsyncX402OpenAI(
-        private_key=os.environ.get("EVM_PRIVATE_KEY"),
-        mnemonic=os.environ.get("MNEMONIC"),
-        account_index=int(os.environ.get("ACCOUNT_INDEX", "0")),
-        base_url=os.environ.get("GATEWAY_URL"),  # defaults to https://llm.qntx.fun/v1
-    )
-
-    print(f"[request] model={model} stream=true\n")
-    print("[Assistant]")
+    client = AsyncX402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
 
     stream = await client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "user", "content": "Explain the x402 payment protocol in detail."},
-        ],
+        model=os.environ.get("MODEL", "gpt-4o-mini"),
+        messages=[{"role": "user", "content": "Explain the x402 payment protocol."}],
         stream=True,
     )
 
     async for chunk in stream:
-        if not chunk.choices:
-            continue
-        delta = chunk.choices[0].delta.content
-        if delta:
-            sys.stdout.write(delta)
-            sys.stdout.flush()
-
-    print("\n\n[done]")
+        if chunk.choices and chunk.choices[0].delta.content:
+            print(chunk.choices[0].delta.content, end="", flush=True)
+    print()
 
 
 asyncio.run(main())

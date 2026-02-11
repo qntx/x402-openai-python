@@ -1,14 +1,14 @@
-"""EVM chat completion.
+"""Solana (SVM) chat completion.
 
-Usage: EVM_PRIVATE_KEY="0x..." python examples/chat.py
+Usage: SOLANA_PRIVATE_KEY="base58..." python examples/chat_svm.py
 """
 
 import os
 
 from x402_openai import X402OpenAI
-from x402_openai.wallets import EvmWallet
+from x402_openai.wallets import SvmWallet
 
-client = X402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
+client = X402OpenAI(wallet=SvmWallet(private_key=os.environ["SOLANA_PRIVATE_KEY"]))
 
 response = client.chat.completions.create(
     model=os.environ.get("MODEL", "gpt-4o-mini"),

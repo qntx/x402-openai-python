@@ -1,26 +1,35 @@
-"""Wallet credential resolution and x402 HTTP client construction.
+"""Chain-agnostic wallet resolution and x402 HTTP client construction.
 
 Provides a single entry point — :func:`create_x402_http_client` — that accepts
-one of three credential sources (private key, mnemonic, or pre-built client)
-and returns a ready-to-use x402 HTTP client for the transport layer.
+wallet adapters (or legacy EVM credentials) and returns a ready-to-use x402
+HTTP client for the transport layer.
 
-All x402 SDK imports are lazy so that users who inject a pre-built client
-do not need ``eth-account`` or ``x402[evm]`` installed.
+Supported credential strategies:
+
+1. **Wallet objects** — one or more :class:`~x402_openai.wallets.Wallet`
+   instances (recommended, chain-agnostic).
+2. **Legacy EVM shortcuts** — ``private_key`` / ``mnemonic`` (backward
+   compatible, internally creates an :class:`~x402_openai.wallets.EvmWallet`).
+3. **Pre-built x402 client** — an already-configured ``x402HTTPClientSync``
+   or ``x402HTTPClient`` (returned as-is).
 """
 
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from x402_openai.wallets._base import Wallet
 
 logger = logging.getLogger(__name__)
-
-# BIP-44 standard derivation path template for Ethereum.
-_BIP44_ETH_PATH = "m/44'/60'/0'/0/{index}"
 
 
 def create_x402_http_client(
     *,
+    wallet: Wallet | None = None,
+    wallets: list[Wallet] | None = None,
+    # Legacy EVM-only shortcuts (backward compatible).
     private_key: str | None = None,
     mnemonic: str | None = None,
     account_index: int = 0,
@@ -31,91 +40,105 @@ def create_x402_http_client(
 ) -> Any:
     """Resolve credentials and return an x402 HTTP client.
 
-    Exactly one credential source must be provided:
+    Credential sources (provide **exactly one**):
 
-    - *private_key* — raw EVM hex key (``"0x…"``).
-    - *mnemonic* — BIP-39 phrase.  Optionally combined with
-      *account_index*, *derivation_path*, or *passphrase*.
-    - *x402_client* — a pre-configured ``x402HTTPClientSync`` or
-      ``x402HTTPClient`` instance (returned as-is).
+    - *wallet* — a single :class:`Wallet` adapter instance.
+    - *wallets* — a list of :class:`Wallet` adapters (multi-chain).
+    - *private_key* / *mnemonic* — legacy EVM shortcuts.
+    - *x402_client* — a pre-configured x402 HTTP client (returned as-is).
 
     Returns
     -------
     ``x402HTTPClientSync`` when *sync* is True, ``x402HTTPClient`` otherwise.
-
-    Raises
-    ------
-    ValueError
-        If zero or more than one credential source is provided, or if
-        mnemonic-only parameters are used without a mnemonic.
     """
-    sources = sum([private_key is not None, mnemonic is not None, x402_client is not None])
-    if sources == 0:
-        raise ValueError(
-            "Provide exactly one credential: 'private_key', 'mnemonic', or 'x402_client'."
-        )
-    if sources > 1:
-        raise ValueError(
-            "Provide only one credential — 'private_key', 'mnemonic', or 'x402_client'."
-        )
-    if derivation_path is not None and mnemonic is None:
-        raise ValueError("'derivation_path' requires 'mnemonic'.")
-
-    if x402_client is not None:
-        return x402_client
-
-    account = (
-        _account_from_mnemonic(mnemonic, account_index, derivation_path, passphrase)
-        if mnemonic is not None
-        else _account_from_key(private_key)  # type: ignore[arg-type]
+    resolved = _resolve_wallets(
+        wallet=wallet,
+        wallets=wallets,
+        private_key=private_key,
+        mnemonic=mnemonic,
+        account_index=account_index,
+        derivation_path=derivation_path,
+        passphrase=passphrase,
+        x402_client=x402_client,
     )
-    return _wrap_account(account, sync=sync)
+
+    # Pre-built client — return as-is.
+    if not isinstance(resolved, list):
+        return resolved
+
+    return _build_client(resolved, sync=sync)
 
 
-def _account_from_key(private_key: str) -> Any:
-    """Derive an ``eth_account.Account`` from a raw hex private key."""
-    from eth_account import Account
-
-    account = Account.from_key(private_key)
-    logger.debug("x402 wallet: %s", account.address)
-    return account
-
-
-def _account_from_mnemonic(
-    mnemonic: str,
+def _resolve_wallets(
+    *,
+    wallet: Wallet | None,
+    wallets: list[Wallet] | None,
+    private_key: str | None,
+    mnemonic: str | None,
     account_index: int,
     derivation_path: str | None,
     passphrase: str,
-) -> Any:
-    """Derive an ``eth_account.Account`` from a BIP-39 mnemonic phrase."""
-    from eth_account import Account
+    x402_client: Any,
+) -> list[Wallet] | Any:
+    """Return a list of :class:`Wallet` instances or a pre-built x402 client.
 
-    Account.enable_unaudited_hdwallet_features()
+    Raises :class:`ValueError` on ambiguous or missing credentials.
+    """
+    has_wallet = wallet is not None
+    has_wallets = wallets is not None and len(wallets) > 0
+    has_legacy = private_key is not None or mnemonic is not None
+    has_prebuilt = x402_client is not None
 
-    path = derivation_path or _BIP44_ETH_PATH.format(index=account_index)
-    account = Account.from_mnemonic(mnemonic, account_path=path, passphrase=passphrase)
-    logger.debug("x402 wallet derived at %s: %s", path, account.address)
-    return account
+    sources = sum([has_wallet, has_wallets, has_legacy, has_prebuilt])
+    if sources == 0:
+        raise ValueError(
+            "Provide exactly one credential source: "
+            "'wallet', 'wallets', 'private_key'/'mnemonic', or 'x402_client'."
+        )
+    if sources > 1:
+        raise ValueError(
+            "Provide only one credential source — "
+            "'wallet', 'wallets', 'private_key'/'mnemonic', or 'x402_client'."
+        )
+
+    if has_prebuilt:
+        return x402_client
+
+    if has_wallet:
+        return [wallet]
+
+    if has_wallets:
+        return list(wallets)  # type: ignore[arg-type]
+
+    # Legacy EVM shortcut — delegate to EvmWallet.
+    from x402_openai.wallets._evm import EvmWallet
+
+    return [
+        EvmWallet(
+            private_key=private_key,
+            mnemonic=mnemonic,
+            account_index=account_index,
+            derivation_path=derivation_path,
+            passphrase=passphrase,
+        )
+    ]
 
 
-def _wrap_account(account: Any, *, sync: bool) -> Any:
-    """Register *account* with the x402 SDK and return the HTTP wrapper."""
-    from x402.mechanisms.evm import EthAccountSigner
-    from x402.mechanisms.evm.exact.register import register_exact_evm_client
-
-    signer = EthAccountSigner(account)
-
+def _build_client(wallet_list: list[Wallet], *, sync: bool) -> Any:
+    """Create an x402 HTTP client and register all wallets."""
     if sync:
         from x402 import x402ClientSync
         from x402.http import x402HTTPClientSync
 
-        sync_client = x402ClientSync()
-        register_exact_evm_client(sync_client, signer)
-        return x402HTTPClientSync(sync_client)
+        client = x402ClientSync()
+        for w in wallet_list:
+            w.register(client)
+        return x402HTTPClientSync(client)
 
     from x402 import x402Client
     from x402.http import x402HTTPClient
 
-    async_client = x402Client()
-    register_exact_evm_client(async_client, signer)
-    return x402HTTPClient(async_client)
+    client = x402Client()
+    for w in wallet_list:
+        w.register(client)
+    return x402HTTPClient(client)

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "x402-openai"
-version = "0.1.0"
+version = "0.2.0"
 description = "Drop-in OpenAI Python client with transparent x402 payment support."
 readme = "README.md"
 license = "MIT OR Apache-2.0"
@@ -31,8 +31,16 @@ dependencies = [
 
 [project.optional-dependencies]
 evm = [
-    "x402[evm]>=0.1.0",
+    "x402[evm]>=2.0.0",
     "eth-account>=0.13.0",
+]
+svm = [
+    "x402[svm]>=2.0.0",
+    "solders>=0.21.0",
+]
+all = [
+    "x402-openai[evm]",
+    "x402-openai[svm]",
 ]
 dev = [
     "pytest>=8.0",
@@ -86,6 +94,8 @@ warn_unused_configs = true
 module = [
     "eth_account",
     "eth_account.*",
+    "solders",
+    "solders.*",
     "x402",
     "x402.*",
 ]

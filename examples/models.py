@@ -1,25 +1,14 @@
-"""List available models from x402 gateway.
+"""List available models.
 
-Usage:
-    EVM_PRIVATE_KEY="0x..." python examples/models.py
-    MNEMONIC="word1 word2 ..." python examples/models.py
+Usage: EVM_PRIVATE_KEY="0x..." python examples/models.py
 """
-
-from __future__ import annotations
 
 import os
 
 from x402_openai import X402OpenAI
+from x402_openai.wallets import EvmWallet
 
-client = X402OpenAI(
-    private_key=os.environ.get("EVM_PRIVATE_KEY"),
-    mnemonic=os.environ.get("MNEMONIC"),
-    account_index=int(os.environ.get("ACCOUNT_INDEX", "0")),
-    base_url=os.environ.get("GATEWAY_URL"),  # defaults to https://llm.qntx.fun/v1
-)
-
-print(f"[gateway] {client.base_url}\n")
-print("Available models:")
+client = X402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
 
 for m in client.models.list():
-    print(f"  - {m.id}")
+    print(m.id)
