@@ -19,9 +19,6 @@ Supports multiple blockchain backends via wallet adapters::
         EvmWallet(private_key="0x…"),
         SvmWallet(private_key="base58…"),
     ])
-
-    # Legacy EVM shortcut (backward compatible)
-    client = X402OpenAI(private_key="0x…")
 """
 
 from __future__ import annotations
@@ -50,9 +47,8 @@ class X402OpenAI(openai.OpenAI):
 
     Provide **exactly one** credential source:
 
-    - ``wallet`` — a :class:`~x402_openai.wallets.Wallet` adapter (recommended).
+    - ``wallet`` — a :class:`~x402_openai.wallets.Wallet` adapter.
     - ``wallets`` — a list of adapters for multi-chain support.
-    - ``private_key`` / ``mnemonic`` — legacy EVM shortcuts (backward compatible).
     - ``x402_client`` — pre-configured ``x402HTTPClientSync``.
 
     All remaining keyword arguments are forwarded to ``openai.OpenAI()``.
@@ -61,23 +57,16 @@ class X402OpenAI(openai.OpenAI):
     --------
     ::
 
-        # EVM via wallet adapter
-        from x402_openai.wallets import EvmWallet
+        from x402_openai.wallets import EvmWallet, SvmWallet
+
+        # Single chain
         client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
-        # SVM (Solana)
-        from x402_openai.wallets import SvmWallet
-        client = X402OpenAI(wallet=SvmWallet(private_key="base58…"))
-
         # Multi-chain
-        from x402_openai.wallets import EvmWallet, SvmWallet
         client = X402OpenAI(wallets=[
             EvmWallet(private_key="0x…"),
             SvmWallet(private_key="base58…"),
         ])
-
-        # Legacy EVM shortcut (backward compatible)
-        client = X402OpenAI(private_key="0x…")
     """
 
     def __init__(
@@ -85,12 +74,6 @@ class X402OpenAI(openai.OpenAI):
         *,
         wallet: Wallet | None = None,
         wallets: list[Wallet] | None = None,
-        # Legacy EVM shortcuts (backward compatible).
-        private_key: str | None = None,
-        mnemonic: str | None = None,
-        account_index: int = 0,
-        derivation_path: str | None = None,
-        passphrase: str = "",
         x402_client: Any = None,
         base_url: str | httpx.URL | None = None,
         api_key: str | None = "x402",
@@ -99,11 +82,6 @@ class X402OpenAI(openai.OpenAI):
         x402_http = create_x402_http_client(
             wallet=wallet,
             wallets=wallets,
-            private_key=private_key,
-            mnemonic=mnemonic,
-            account_index=account_index,
-            derivation_path=derivation_path,
-            passphrase=passphrase,
             x402_client=x402_client,
             sync=True,
         )
@@ -142,12 +120,6 @@ class AsyncX402OpenAI(openai.AsyncOpenAI):
         *,
         wallet: Wallet | None = None,
         wallets: list[Wallet] | None = None,
-        # Legacy EVM shortcuts (backward compatible).
-        private_key: str | None = None,
-        mnemonic: str | None = None,
-        account_index: int = 0,
-        derivation_path: str | None = None,
-        passphrase: str = "",
         x402_client: Any = None,
         base_url: str | httpx.URL | None = None,
         api_key: str | None = "x402",
@@ -156,11 +128,6 @@ class AsyncX402OpenAI(openai.AsyncOpenAI):
         x402_http = create_x402_http_client(
             wallet=wallet,
             wallets=wallets,
-            private_key=private_key,
-            mnemonic=mnemonic,
-            account_index=account_index,
-            derivation_path=derivation_path,
-            passphrase=passphrase,
             x402_client=x402_client,
             sync=False,
         )

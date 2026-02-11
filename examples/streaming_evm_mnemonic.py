@@ -1,6 +1,6 @@
-"""Async streaming chat completion.
+"""EVM async streaming chat completion with mnemonic phrase.
 
-Usage: EVM_PRIVATE_KEY="0x..." python examples/streaming.py
+Usage: MNEMONIC="word1 word2 ..." python examples/streaming_evm_mnemonic.py
 """
 
 import asyncio
@@ -11,7 +11,12 @@ from x402_openai.wallets import EvmWallet
 
 
 async def main() -> None:
-    client = AsyncX402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
+    client = AsyncX402OpenAI(
+        wallet=EvmWallet(
+            mnemonic=os.environ["MNEMONIC"],
+            account_index=int(os.environ.get("ACCOUNT_INDEX", "0")),
+        ),
+    )
 
     stream = await client.chat.completions.create(
         model=os.environ.get("MODEL", "gpt-4o-mini"),

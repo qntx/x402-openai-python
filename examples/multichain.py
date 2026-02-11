@@ -1,6 +1,6 @@
 """Multi-chain (EVM + SVM) chat completion.
 
-Usage: EVM_PRIVATE_KEY="0x..." SOLANA_PRIVATE_KEY="base58..." python examples/chat_multichain.py
+Usage: EVM_PRIVATE_KEY="0x..." SOLANA_PRIVATE_KEY="base58..." python examples/multichain.py
 """
 
 import os

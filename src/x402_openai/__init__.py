@@ -17,9 +17,6 @@ Quick start::
         SvmWallet(private_key="base58…"),
     ])
 
-    # Legacy EVM shortcut (backward compatible)
-    client = X402OpenAI(private_key="0x…")
-
 Public API:
 
 - :class:`X402OpenAI` / :class:`AsyncX402OpenAI` — recommended client classes.

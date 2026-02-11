@@ -1,4 +1,4 @@
-"""List available models.
+"""List available models from the x402 gateway.
 
 Usage: EVM_PRIVATE_KEY="0x..." python examples/models.py
 """

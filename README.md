@@ -73,15 +73,6 @@ wallet = EvmWallet(mnemonic="word1 word2 …", account_index=2)
 wallet = EvmWallet(mnemonic="word1 word2 …", derivation_path="m/44'/60'/2'/0/0")
 ```
 
-### Legacy EVM shortcut (backward compatible)
-
-Existing code using `private_key=` / `mnemonic=` directly continues to work:
-
-```python
-client = X402OpenAI(private_key="0x…")
-client = X402OpenAI(mnemonic="word1 word2 … word12")
-```
-
 ### Async
 
 ```python
@@ -145,11 +136,7 @@ Drop-in replacement for `openai.OpenAI`. Provide **exactly one** credential sour
 | --- | --- |
 | `wallet` | A single `Wallet` adapter (e.g. `EvmWallet`, `SvmWallet`) |
 | `wallets` | List of `Wallet` adapters for multi-chain support |
-| `private_key` | *(legacy)* EVM hex key (`"0x…"`) |
-| `mnemonic` | *(legacy)* BIP-39 phrase (12/24 words) |
 | `x402_client` | Pre-configured `x402HTTPClientSync` |
-
-Legacy mnemonic companions: `account_index` (default `0`), `derivation_path`, `passphrase`.
 
 Default `base_url` is `https://llm.qntx.fun/v1`. All kwargs (`base_url`, `timeout`, `max_retries`, …) forward to `openai.OpenAI`.
 
@@ -174,20 +161,32 @@ Low-level httpx transports for manual wiring.
 ## Examples
 
 ```bash
-# EVM chat completion
-EVM_PRIVATE_KEY="0x..." python examples/chat.py
+# EVM — private key
+EVM_PRIVATE_KEY="0x..." python examples/chat_evm.py
 
-# SVM (Solana) chat completion
+# EVM — mnemonic phrase
+MNEMONIC="word1 word2 ..." python examples/chat_evm_mnemonic.py
+
+# SVM (Solana) — private key
 SOLANA_PRIVATE_KEY="base58..." python examples/chat_svm.py
 
-# Multi-chain (EVM + SVM)
-EVM_PRIVATE_KEY="0x..." SOLANA_PRIVATE_KEY="base58..." python examples/chat_multichain.py
+# Async streaming — EVM
+EVM_PRIVATE_KEY="0x..." python examples/streaming_evm.py
 
-# Streaming
-EVM_PRIVATE_KEY="0x..." python examples/streaming.py
+# Async streaming — EVM mnemonic
+MNEMONIC="word1 word2 ..." python examples/streaming_evm_mnemonic.py
+
+# Async streaming — SVM
+SOLANA_PRIVATE_KEY="base58..." python examples/streaming_svm.py
+
+# Multi-chain (EVM + SVM)
+EVM_PRIVATE_KEY="0x..." SOLANA_PRIVATE_KEY="base58..." python examples/multichain.py
 
 # List models
-MNEMONIC="word1 word2 ..." python examples/models.py
+EVM_PRIVATE_KEY="0x..." python examples/models.py
+
+# List models — mnemonic
+MNEMONIC="word1 word2 ..." python examples/models_mnemonic.py
 ```
 
 ## License

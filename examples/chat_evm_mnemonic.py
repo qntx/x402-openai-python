@@ -1,9 +1,8 @@
-"""EVM chat completion with custom account index and derivation path.
+"""EVM chat completion with mnemonic phrase.
 
 Usage:
-    MNEMONIC="word1 word2 ..." ACCOUNT_INDEX=2 python examples/chat_mnemonic_derivation.py
-    MNEMONIC="word1 word2 ..." DERIVATION_PATH="m/44'/60'/2'/0/0" \
-        python examples/chat_mnemonic_derivation.py
+    MNEMONIC="word1 word2 ..." python examples/chat_evm_mnemonic.py
+    MNEMONIC="word1 word2 ..." ACCOUNT_INDEX=2 python examples/chat_evm_mnemonic.py
 """
 
 import os

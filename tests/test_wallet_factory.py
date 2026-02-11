@@ -15,14 +15,9 @@ from x402_openai.wallets._svm import SvmWallet
 # Helpers
 # ---------------------------------------------------------------------------
 
-_DEFAULTS = dict(
+_DEFAULTS: dict[str, Any] = dict(
     wallet=None,
     wallets=None,
-    private_key=None,
-    mnemonic=None,
-    account_index=0,
-    derivation_path=None,
-    passphrase="",
     x402_client=None,
 )
 
@@ -47,7 +42,7 @@ class TestResolveWallets:
     def test_multiple_sources_raises(self) -> None:
         w = EvmWallet(private_key="0xdead")
         with pytest.raises(ValueError, match="only one"):
-            _resolve(wallet=w, private_key="0xdead")
+            _resolve(wallet=w, x402_client=object())
 
     def test_prebuilt_client_returned_as_is(self) -> None:
         sentinel = object()
@@ -68,16 +63,6 @@ class TestResolveWallets:
     def test_empty_wallets_treated_as_missing(self) -> None:
         with pytest.raises(ValueError, match="exactly one"):
             _resolve(wallets=[])
-
-    def test_legacy_private_key_creates_evm_wallet(self) -> None:
-        result = _resolve(private_key="0xdead")
-        assert len(result) == 1
-        assert isinstance(result[0], EvmWallet)
-
-    def test_legacy_mnemonic_creates_evm_wallet(self) -> None:
-        result = _resolve(mnemonic="word1 word2 word3")
-        assert len(result) == 1
-        assert isinstance(result[0], EvmWallet)
 
 
 # ---------------------------------------------------------------------------

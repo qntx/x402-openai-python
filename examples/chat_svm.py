@@ -1,4 +1,4 @@
-"""Solana (SVM) chat completion.
+"""SVM (Solana) chat completion with private key.
 
 Usage: SOLANA_PRIVATE_KEY="base58..." python examples/chat_svm.py
 """

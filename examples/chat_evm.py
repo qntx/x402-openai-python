@@ -1,6 +1,6 @@
-"""EVM chat completion using a BIP-39 mnemonic phrase.
+"""EVM chat completion with private key.
 
-Usage: MNEMONIC="word1 word2 ... word12" python examples/chat_mnemonic.py
+Usage: EVM_PRIVATE_KEY="0x..." python examples/chat_evm.py
 """
 
 import os
@@ -8,7 +8,7 @@ import os
 from x402_openai import X402OpenAI
 from x402_openai.wallets import EvmWallet
 
-client = X402OpenAI(wallet=EvmWallet(mnemonic=os.environ["MNEMONIC"]))
+client = X402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
 
 response = client.chat.completions.create(
     model=os.environ.get("MODEL", "gpt-4o-mini"),
