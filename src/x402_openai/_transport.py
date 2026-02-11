@@ -20,11 +20,6 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Shared helper
-# ---------------------------------------------------------------------------
-
-
 def _clone_request_with_headers(
     original: httpx.Request,
     extra_headers: dict[str, str],
@@ -38,11 +33,6 @@ def _clone_request_with_headers(
         headers=headers,
         content=original.content,
     )
-
-
-# ---------------------------------------------------------------------------
-# Synchronous transport
-# ---------------------------------------------------------------------------
 
 
 class X402Transport(httpx.BaseTransport):
@@ -93,11 +83,6 @@ class X402Transport(httpx.BaseTransport):
     def close(self) -> None:
         """Shut down the underlying transport."""
         self._inner.close()
-
-
-# ---------------------------------------------------------------------------
-# Asynchronous transport
-# ---------------------------------------------------------------------------
 
 
 class AsyncX402Transport(httpx.AsyncBaseTransport):

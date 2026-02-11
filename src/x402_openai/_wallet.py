@@ -72,14 +72,9 @@ def create_x402_http_client(
     return _wrap_account(account, sync=sync)
 
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-
 def _account_from_key(private_key: str) -> Any:
     """Derive an ``eth_account.Account`` from a raw hex private key."""
-    from eth_account import Account  # type: ignore[import-untyped]
+    from eth_account import Account
 
     account = Account.from_key(private_key)
     logger.debug("x402 wallet: %s", account.address)
@@ -93,7 +88,7 @@ def _account_from_mnemonic(
     passphrase: str,
 ) -> Any:
     """Derive an ``eth_account.Account`` from a BIP-39 mnemonic phrase."""
-    from eth_account import Account  # type: ignore[import-untyped]
+    from eth_account import Account
 
     Account.enable_unaudited_hdwallet_features()
 
@@ -105,24 +100,22 @@ def _account_from_mnemonic(
 
 def _wrap_account(account: Any, *, sync: bool) -> Any:
     """Register *account* with the x402 SDK and return the HTTP wrapper."""
-    from x402.mechanisms.evm import EthAccountSigner  # type: ignore[import-untyped]
-    from x402.mechanisms.evm.exact.register import (
-        register_exact_evm_client,  # type: ignore[import-untyped]
-    )
+    from x402.mechanisms.evm import EthAccountSigner
+    from x402.mechanisms.evm.exact.register import register_exact_evm_client
 
     signer = EthAccountSigner(account)
 
     if sync:
-        from x402 import x402ClientSync  # type: ignore[import-untyped]
-        from x402.http import x402HTTPClientSync  # type: ignore[import-untyped]
+        from x402 import x402ClientSync
+        from x402.http import x402HTTPClientSync
 
-        client = x402ClientSync()
-        register_exact_evm_client(client, signer)
-        return x402HTTPClientSync(client)
+        sync_client = x402ClientSync()
+        register_exact_evm_client(sync_client, signer)
+        return x402HTTPClientSync(sync_client)
 
-    from x402 import x402Client  # type: ignore[import-untyped]
-    from x402.http import x402HTTPClient  # type: ignore[import-untyped]
+    from x402 import x402Client
+    from x402.http import x402HTTPClient
 
-    client = x402Client()
-    register_exact_evm_client(client, signer)
-    return x402HTTPClient(client)
+    async_client = x402Client()
+    register_exact_evm_client(async_client, signer)
+    return x402HTTPClient(async_client)

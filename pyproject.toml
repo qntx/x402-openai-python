@@ -70,7 +70,6 @@ select = [
     "RUF",  # ruff-specific
 ]
 ignore = [
-    "ANN101",  # missing self annotation
     "ANN401",  # dynamically typed expressions (Any)
 ]
 
@@ -82,6 +81,15 @@ python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "eth_account",
+    "eth_account.*",
+    "x402",
+    "x402.*",
+]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

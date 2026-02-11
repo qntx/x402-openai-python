@@ -1,0 +1,10 @@
+name: Pre-commit Autoupdate
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+jobs:
+  autoupdate:
+    uses: qntx/workflows/.github/workflows/pre-commit-autoupdate.yml@main
