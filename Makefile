@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := all
 
 .PHONY: help install check lint format typecheck test build clean all
 
