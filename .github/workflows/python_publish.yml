@@ -1,0 +1,14 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  call-publish:
+    uses: qntx/workflows/.github/workflows/python-publish.yml@main
+    with:
+      python-version: '3.13'
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}

@@ -9,4 +9,5 @@ on:
 jobs:
   call-ci:
     uses: qntx/workflows/.github/workflows/python.yml@main
-    
+    with:
+      python-version: '3.13'
