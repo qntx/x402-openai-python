@@ -80,7 +80,8 @@ class X402Transport(httpx.BaseTransport):
 
         try:
             payment_headers, _ = self._x402.handle_402_response(
-                dict(response.headers), response.content,
+                dict(response.headers),
+                response.content,
             )
         except Exception:
             logger.exception("x402: payment signing failed")
@@ -134,7 +135,8 @@ class AsyncX402Transport(httpx.AsyncBaseTransport):
 
         try:
             payment_headers, _ = await self._x402.handle_402_response(
-                dict(response.headers), response.content,
+                dict(response.headers),
+                response.content,
             )
         except Exception:
             logger.exception("x402: payment signing failed")

@@ -70,6 +70,7 @@ select = [
     "RUF",  # ruff-specific
 ]
 ignore = [
+    "ANN101",  # missing self annotation
     "ANN401",  # dynamically typed expressions (Any)
 ]
 
