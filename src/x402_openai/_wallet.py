@@ -106,7 +106,9 @@ def _account_from_mnemonic(
 def _wrap_account(account: Any, *, sync: bool) -> Any:
     """Register *account* with the x402 SDK and return the HTTP wrapper."""
     from x402.mechanisms.evm import EthAccountSigner  # type: ignore[import-untyped]
-    from x402.mechanisms.evm.exact.register import register_exact_evm_client  # type: ignore[import-untyped]
+    from x402.mechanisms.evm.exact.register import (
+        register_exact_evm_client,  # type: ignore[import-untyped]
+    )
 
     signer = EthAccountSigner(account)
 
