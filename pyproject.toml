@@ -68,8 +68,6 @@ select = [
     "RUF",  # ruff-specific
 ]
 ignore = [
-    "ANN101",  # missing self annotation
-    "ANN102",  # missing cls annotation
     "ANN401",  # dynamically typed expressions (Any)
 ]
 

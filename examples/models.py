@@ -18,7 +18,7 @@ client = X402OpenAI(
     base_url=os.environ.get("GATEWAY_URL"),  # defaults to https://llm.qntx.fun/v1
 )
 
-print("[gateway] %s\n" % client.base_url)
+print(f"[gateway] {client.base_url}\n")
 print("Available models:")
 
 for m in client.models.list():
