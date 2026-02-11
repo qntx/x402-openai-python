@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "x402-openai"
+version = "0.1.0"
+description = "Drop-in OpenAI Python client with transparent x402 payment support."
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+authors = [
+    { name = "QNTX", email = "x@qntx.fun" },
+]
+requires-python = ">=3.11"
+keywords = ["openai", "x402", "payment", "crypto", "usdc", "llm", "ai", "wallet"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "openai>=1.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+evm = [
+    "x402[evm]>=0.1.0",
+    "eth-account>=0.13.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "mypy>=1.0",
+    "ruff>=0.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/qntx/x402-openai-python"
+Repository = "https://github.com/qntx/x402-openai-python"
+Issues = "https://github.com/qntx/x402-openai-python/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/x402_openai"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 99
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "ANN101",  # missing self annotation
+    "ANN102",  # missing cls annotation
+    "ANN401",  # dynamically typed expressions (Any)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["x402_openai"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
