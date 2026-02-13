@@ -30,10 +30,7 @@ pip install x402-openai[all]          # all chains
 from x402_openai import X402OpenAI
 from x402_openai.wallets import EvmWallet
 
-client = X402OpenAI(
-    base_url="https://llm.qntx.fun/v1",
-    wallet=EvmWallet(private_key="0x…")
-)
+client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
 res = client.chat.completions.create(
     model="openai/gpt-4o-mini",
