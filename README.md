@@ -1,26 +1,30 @@
+<div align="center">
+
 # x402-openai
 
-> Drop-in OpenAI Python client with transparent x402 payment support — **EVM, Solana, and beyond**.
+**Drop-in OpenAI Python client with transparent [x402](https://www.x402.org/) payment support.**
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-green)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/x402-openai)](https://pypi.org/project/x402-openai/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue)](https://python.org)
+[![CI](https://github.com/qntx/x402-openai-python/actions/workflows/python.yml/badge.svg)](https://github.com/qntx/x402-openai-python/actions)
+[![License](https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-green)](LICENSE-MIT)
 
-## Install
+</div>
+
+---
+
+Wrap the standard `openai.OpenAI` client with a crypto wallet.
+When the server responds with **HTTP 402**, the library automatically signs and retries the request — zero code changes needed.
+
+## Installation
 
 ```bash
-# EVM only
-pip install x402-openai[evm]
-
-# Solana (SVM) only
-pip install x402-openai[svm]
-
-# Both chains
-pip install x402-openai[all]
+pip install x402-openai[evm]          # Ethereum / Base / …
+pip install x402-openai[svm]          # Solana
+pip install x402-openai[all]          # all chains
 ```
 
 ## Quick Start
-
-### EVM (Ethereum / Base / …)
 
 ```python
 from x402_openai import X402OpenAI
@@ -28,29 +32,20 @@ from x402_openai.wallets import EvmWallet
 
 client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
-# Use exactly like openai.OpenAI — everything just works!
-completion = client.chat.completions.create(
-    model="gpt-4o-mini",
+res = client.chat.completions.create(
+    model="openai/gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello!"}],
 )
-print(completion.choices[0].message.content)
+print(res.choices[0].message.content)
 ```
 
-### SVM (Solana)
+Swap `EvmWallet` for `SvmWallet` to pay on Solana — the API is identical.
 
-```python
-from x402_openai import X402OpenAI
-from x402_openai.wallets import SvmWallet
-
-client = X402OpenAI(wallet=SvmWallet(private_key="base58…"))
-```
+## Usage
 
 ### Multi-chain
 
-Register multiple wallets — the x402 protocol automatically selects the right chain based on the server's payment requirements.
-
 ```python
-from x402_openai import X402OpenAI
 from x402_openai.wallets import EvmWallet, SvmWallet
 
 client = X402OpenAI(wallets=[
@@ -59,39 +54,17 @@ client = X402OpenAI(wallets=[
 ])
 ```
 
-### EVM mnemonic phrase
+The protocol selects the right chain automatically based on the server's payment requirements.
 
-```python
-from x402_openai.wallets import EvmWallet
-
-wallet = EvmWallet(mnemonic="word1 word2 … word12")
-
-# BIP-44 account #2: m/44'/60'/0'/0/2
-wallet = EvmWallet(mnemonic="word1 word2 …", account_index=2)
-
-# Ledger Live derivation path
-wallet = EvmWallet(mnemonic="word1 word2 …", derivation_path="m/44'/60'/2'/0/0")
-```
-
-### Async
+### Async & Streaming
 
 ```python
 from x402_openai import AsyncX402OpenAI
-from x402_openai.wallets import SvmWallet
 
-client = AsyncX402OpenAI(wallet=SvmWallet(private_key="base58…"))
+client = AsyncX402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
-completion = await client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[{"role": "user", "content": "Hello!"}],
-)
-```
-
-### Streaming
-
-```python
 stream = await client.chat.completions.create(
-    model="gpt-4o-mini",
+    model="openai/gpt-4o-mini",
     messages=[{"role": "user", "content": "Explain x402"}],
     stream=True,
 )
@@ -100,93 +73,62 @@ async for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
-### Advanced: pre-built x402 client
+### BIP-39 Mnemonic (EVM)
+
+```python
+wallet = EvmWallet(mnemonic="word1 word2 … word12")
+wallet = EvmWallet(mnemonic="…", account_index=2)                  # m/44'/60'/0'/0/2
+wallet = EvmWallet(mnemonic="…", derivation_path="m/44'/60'/2'/0/0")  # custom path
+```
+
+### Pre-built x402 Client
 
 ```python
 from x402 import x402ClientSync
-from x402_openai import X402OpenAI
 
 x402 = x402ClientSync()
-# ... register custom payment schemes ...
-
+# … register custom payment schemes …
 client = X402OpenAI(x402_client=x402)
 ```
 
-### Advanced: manual transport injection
+## API Reference
 
-```python
-import httpx
-from openai import AsyncOpenAI
-from x402_openai import AsyncX402Transport
+### `X402OpenAI` / `AsyncX402OpenAI`
 
-transport = AsyncX402Transport(x402_client=x402_http)
-client = AsyncOpenAI(
-    api_key="x402",
-    http_client=httpx.AsyncClient(transport=transport),
-)
-```
+Drop-in replacement for `openai.OpenAI` / `openai.AsyncOpenAI`. Provide **exactly one** credential source:
 
-## API
+| Parameter | Type | Description |
+| :-- | :-- | :-- |
+| `wallet` | `Wallet` | Single wallet adapter |
+| `wallets` | `list[Wallet]` | Multiple adapters (multi-chain) |
+| `x402_client` | `x402HTTPClient*` | Pre-configured x402 client |
 
-### `X402OpenAI(*, wallet=None, wallets=None, x402_client=None, **kwargs)`
+All standard OpenAI kwargs (`base_url`, `timeout`, `max_retries`, …) are forwarded.
+Default `base_url`: `https://llm.qntx.fun/v1`
 
-Drop-in replacement for `openai.OpenAI`. Provide **exactly one** credential source:
+### Wallet Adapters
 
-| Parameter | Description |
-| --- | --- |
-| `wallet` | A single `Wallet` adapter (e.g. `EvmWallet`, `SvmWallet`) |
-| `wallets` | List of `Wallet` adapters for multi-chain support |
-| `x402_client` | Pre-configured `x402HTTPClientSync` |
-
-Default `base_url` is `https://llm.qntx.fun/v1`. All kwargs (`base_url`, `timeout`, `max_retries`, …) forward to `openai.OpenAI`.
-
-### `AsyncX402OpenAI(*, ...)`
-
-Async version — identical parameters.
-
-### Wallet adapters
-
-| Class | Chain | Install extra |
-| --- | --- | --- |
-| `EvmWallet(private_key=…)` | EVM (Ethereum, Base, …) | `x402-openai[evm]` |
+| Class | Chain | Extra |
+| :-- | :-- | :-- |
+| `EvmWallet(private_key=…)` | EVM | `x402-openai[evm]` |
 | `EvmWallet(mnemonic=…)` | EVM (BIP-39) | `x402-openai[evm]` |
 | `SvmWallet(private_key=…)` | Solana | `x402-openai[svm]` |
 
-All wallets implement the `Wallet` protocol. See [`wallets/_base.py`](src/x402_openai/wallets/_base.py) to add support for a new chain.
+Implement the [`Wallet`](src/x402_openai/wallets/_base.py) protocol to add a new chain.
 
-### `X402Transport(x402_client, *, inner=None)` / `AsyncX402Transport(x402_client, *, inner=None)`
+### Low-level Transports
 
-Low-level httpx transports for manual wiring.
+`X402Transport` / `AsyncX402Transport` — httpx transports for manual wiring into any `httpx.Client`.
 
 ## Examples
 
+See the [`examples/`](examples/) directory. Each script is self-contained:
+
 ```bash
-# EVM — private key
-EVM_PRIVATE_KEY="0x..." python examples/chat_evm.py
-
-# EVM — mnemonic phrase
-MNEMONIC="word1 word2 ..." python examples/chat_evm_mnemonic.py
-
-# SVM (Solana) — private key
-SOLANA_PRIVATE_KEY="base58..." python examples/chat_svm.py
-
-# Async streaming — EVM
-EVM_PRIVATE_KEY="0x..." python examples/streaming_evm.py
-
-# Async streaming — EVM mnemonic
-MNEMONIC="word1 word2 ..." python examples/streaming_evm_mnemonic.py
-
-# Async streaming — SVM
-SOLANA_PRIVATE_KEY="base58..." python examples/streaming_svm.py
-
-# Multi-chain (EVM + SVM)
-EVM_PRIVATE_KEY="0x..." SOLANA_PRIVATE_KEY="base58..." python examples/multichain.py
-
-# List models
-EVM_PRIVATE_KEY="0x..." python examples/models.py
-
-# List models — mnemonic
-MNEMONIC="word1 word2 ..." python examples/models_mnemonic.py
+EVM_PRIVATE_KEY="0x…"           python examples/chat_evm.py
+SOLANA_PRIVATE_KEY="base58…"    python examples/chat_svm.py
+EVM_PRIVATE_KEY="0x…"           python examples/streaming_evm.py
+MNEMONIC="word1 word2 …"       python examples/chat_evm_mnemonic.py
 ```
 
 ## License

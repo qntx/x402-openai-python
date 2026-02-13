@@ -57,16 +57,20 @@ class X402OpenAI(openai.OpenAI):
     --------
     ::
 
+        from x402_openai import X402OpenAI, prefer_network
         from x402_openai.wallets import EvmWallet, SvmWallet
 
         # Single chain
         client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
 
-        # Multi-chain
-        client = X402OpenAI(wallets=[
-            EvmWallet(private_key="0x…"),
-            SvmWallet(private_key="base58…"),
-        ])
+        # Multi-chain with policy
+        client = X402OpenAI(
+            wallets=[
+                EvmWallet(private_key="0x…"),
+                SvmWallet(private_key="base58…"),
+            ],
+            policies=[prefer_network("eip155:8453")],
+        )
     """
 
     def __init__(
@@ -75,6 +79,7 @@ class X402OpenAI(openai.OpenAI):
         wallet: Wallet | None = None,
         wallets: list[Wallet] | None = None,
         x402_client: Any = None,
+        policies: list[Any] | None = None,
         base_url: str | httpx.URL | None = None,
         api_key: str | None = "x402",
         **kwargs: Any,
@@ -83,6 +88,7 @@ class X402OpenAI(openai.OpenAI):
             wallet=wallet,
             wallets=wallets,
             x402_client=x402_client,
+            policies=policies,
             sync=True,
         )
         http_client = httpx.Client(
@@ -107,8 +113,13 @@ class AsyncX402OpenAI(openai.AsyncOpenAI):
     --------
     ::
 
+        from x402_openai import AsyncX402OpenAI, prefer_network
         from x402_openai.wallets import SvmWallet
-        client = AsyncX402OpenAI(wallet=SvmWallet(private_key="base58…"))
+
+        client = AsyncX402OpenAI(
+            wallet=SvmWallet(private_key="base58…"),
+            policies=[prefer_network("solana:*")],
+        )
         completion = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "Hello!"}],
@@ -121,6 +132,7 @@ class AsyncX402OpenAI(openai.AsyncOpenAI):
         wallet: Wallet | None = None,
         wallets: list[Wallet] | None = None,
         x402_client: Any = None,
+        policies: list[Any] | None = None,
         base_url: str | httpx.URL | None = None,
         api_key: str | None = "x402",
         **kwargs: Any,
@@ -129,6 +141,7 @@ class AsyncX402OpenAI(openai.AsyncOpenAI):
             wallet=wallet,
             wallets=wallets,
             x402_client=x402_client,
+            policies=policies,
             sync=False,
         )
         http_client = httpx.AsyncClient(

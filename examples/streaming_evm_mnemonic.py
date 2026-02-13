@@ -19,7 +19,7 @@ async def main() -> None:
     )
 
     stream = await client.chat.completions.create(
-        model=os.environ.get("MODEL", "gpt-4o-mini"),
+        model=os.environ.get("MODEL", "openai/gpt-4o-mini"),
         messages=[{"role": "user", "content": "Explain the x402 payment protocol."}],
         stream=True,
     )

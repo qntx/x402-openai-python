@@ -28,6 +28,7 @@ def create_x402_http_client(
     wallet: Wallet | None = None,
     wallets: list[Wallet] | None = None,
     x402_client: Any = None,
+    policies: list[Any] | None = None,
     sync: bool = True,
 ) -> Any:
     """Resolve credentials and return an x402 HTTP client.
@@ -37,6 +38,13 @@ def create_x402_http_client(
     - *wallet* — a single :class:`Wallet` adapter instance.
     - *wallets* — a list of :class:`Wallet` adapters (multi-chain).
     - *x402_client* — a pre-configured x402 HTTP client (returned as-is).
+
+    Parameters
+    ----------
+    policies:
+        Optional list of x402 policy objects (e.g. ``prefer_network``,
+        ``prefer_scheme``, ``max_amount``) that filter or prioritise
+        payment requirements.  Ignored when *x402_client* is provided.
 
     Returns
     -------
@@ -50,9 +58,14 @@ def create_x402_http_client(
 
     # Pre-built client — return as-is.
     if not isinstance(resolved, list):
+        if policies:
+            logger.warning(
+                "x402: 'policies' ignored when 'x402_client' is provided — "
+                "register policies on the pre-built client directly."
+            )
         return resolved
 
-    return _build_client(resolved, sync=sync)
+    return _build_client(resolved, policies=policies, sync=sync)
 
 
 def _resolve_wallets(
@@ -88,8 +101,13 @@ def _resolve_wallets(
     return list(wallets)  # type: ignore[arg-type]
 
 
-def _build_client(wallet_list: list[Wallet], *, sync: bool) -> Any:
-    """Create an x402 HTTP client and register all wallets."""
+def _build_client(
+    wallet_list: list[Wallet],
+    *,
+    policies: list[Any] | None = None,
+    sync: bool,
+) -> Any:
+    """Create an x402 HTTP client, register wallets and policies."""
     if sync:
         from x402 import x402ClientSync
         from x402.http import x402HTTPClientSync
@@ -97,6 +115,8 @@ def _build_client(wallet_list: list[Wallet], *, sync: bool) -> Any:
         client = x402ClientSync()
         for w in wallet_list:
             w.register(client)
+        for p in policies or ():
+            client.register_policy(p)
         return x402HTTPClientSync(client)
 
     from x402 import x402Client
@@ -105,4 +125,6 @@ def _build_client(wallet_list: list[Wallet], *, sync: bool) -> Any:
     client = x402Client()
     for w in wallet_list:
         w.register(client)
+    for p in policies or ():
+        client.register_policy(p)
     return x402HTTPClient(client)

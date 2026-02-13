@@ -82,7 +82,7 @@ class TestBuildClient:
 
         result = create_x402_http_client(wallet=w, sync=True)
 
-        mock_build.assert_called_once_with([w], sync=True)
+        mock_build.assert_called_once_with([w], policies=None, sync=True)
         assert result == "fake_http_client"
 
     @patch("x402_openai._wallet._build_client")
@@ -95,7 +95,7 @@ class TestBuildClient:
 
         result = create_x402_http_client(wallets=[w1, w2], sync=False)
 
-        mock_build.assert_called_once_with([w1, w2], sync=False)
+        mock_build.assert_called_once_with([w1, w2], policies=None, sync=False)
         assert result == "fake_http_client"
 
     def test_prebuilt_client_bypasses_build(self) -> None:
@@ -104,3 +104,29 @@ class TestBuildClient:
         sentinel = object()
         result = create_x402_http_client(x402_client=sentinel, sync=True)
         assert result is sentinel
+
+    @patch("x402_openai._wallet._build_client")
+    def test_policies_forwarded_to_build(self, mock_build: MagicMock) -> None:
+        from x402_openai._wallet import create_x402_http_client
+
+        mock_build.return_value = "fake_http_client"
+        w = EvmWallet(private_key="0xdead")
+        fake_policies = ["policy_a", "policy_b"]
+
+        result = create_x402_http_client(wallet=w, policies=fake_policies, sync=True)
+
+        mock_build.assert_called_once_with([w], policies=fake_policies, sync=True)
+        assert result == "fake_http_client"
+
+    def test_policies_ignored_with_prebuilt_client(self, caplog: Any) -> None:
+        from x402_openai._wallet import create_x402_http_client
+
+        sentinel = object()
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            result = create_x402_http_client(
+                x402_client=sentinel, policies=["policy_a"], sync=True
+            )
+        assert result is sentinel
+        assert "policies" in caplog.text.lower()

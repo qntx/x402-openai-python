@@ -1,18 +1,19 @@
-"""SVM (Solana) async streaming chat completion with private key.
+"""EVM async streaming chat completion with private key and payment policy.
 
-Usage: SOLANA_PRIVATE_KEY="base58..." python examples/streaming_svm.py
+Usage: EVM_PRIVATE_KEY="0x..." python examples/streaming_evm_policy.py
 """
 
 import asyncio
 import os
 
-from x402_openai import AsyncX402OpenAI
-from x402_openai.wallets import SvmWallet
+from x402_openai import AsyncX402OpenAI, prefer_network
+from x402_openai.wallets import EvmWallet
 
 
 async def main() -> None:
     client = AsyncX402OpenAI(
-        wallet=SvmWallet(private_key=os.environ["SOLANA_PRIVATE_KEY"]),
+        wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]),
+        policies=[prefer_network("eip155:143")],
     )
 
     stream = await client.chat.completions.create(

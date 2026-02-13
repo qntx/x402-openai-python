@@ -11,7 +11,7 @@ from x402_openai.wallets import EvmWallet
 client = X402OpenAI(wallet=EvmWallet(private_key=os.environ["EVM_PRIVATE_KEY"]))
 
 response = client.chat.completions.create(
-    model=os.environ.get("MODEL", "gpt-4o-mini"),
+    model=os.environ.get("MODEL", "openai/gpt-4o-mini"),
     messages=[{"role": "user", "content": "What is the x402 payment protocol?"}],
 )
 print(response.choices[0].message.content)
