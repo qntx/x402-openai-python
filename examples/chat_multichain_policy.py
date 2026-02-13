@@ -20,8 +20,8 @@ client = X402OpenAI(
     ],
     policies=[
         prefer_network("eip155:8453"),  # Prefer Base mainnet
-        prefer_scheme("exact"),         # Prefer exact payment scheme
-        max_amount(1_000_000),          # Cap at 1 USDC (6 decimals)
+        prefer_scheme("exact"),  # Prefer exact payment scheme
+        max_amount(1_000_000),  # Cap at 1 USDC (6 decimals)
     ],
 )
 
