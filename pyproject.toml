@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "x402-openai"
-version = "0.2.1"
+version = "0.3.0"
 description = "Drop-in OpenAI Python client with transparent x402 payment support."
 readme = "README.md"
 license = "MIT OR Apache-2.0"
