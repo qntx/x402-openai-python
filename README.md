@@ -30,7 +30,10 @@ pip install x402-openai[all]          # all chains
 from x402_openai import X402OpenAI
 from x402_openai.wallets import EvmWallet
 
-client = X402OpenAI(wallet=EvmWallet(private_key="0x…"))
+client = X402OpenAI(
+    base_url="https://llm.qntx.fun/v1",
+    wallet=EvmWallet(private_key="0x…")
+)
 
 res = client.chat.completions.create(
     model="openai/gpt-4o-mini",
@@ -42,19 +45,6 @@ print(res.choices[0].message.content)
 Swap `EvmWallet` for `SvmWallet` to pay on Solana — the API is identical.
 
 ## Usage
-
-### Multi-chain
-
-```python
-from x402_openai.wallets import EvmWallet, SvmWallet
-
-client = X402OpenAI(wallets=[
-    EvmWallet(private_key="0x…"),
-    SvmWallet(private_key="base58…"),
-])
-```
-
-The protocol selects the right chain automatically based on the server's payment requirements.
 
 ### Async & Streaming
 
@@ -73,6 +63,17 @@ async for chunk in stream:
         print(chunk.choices[0].delta.content, end="")
 ```
 
+### Multi-chain
+
+```python
+from x402_openai.wallets import EvmWallet, SvmWallet
+
+client = X402OpenAI(wallets=[
+    EvmWallet(private_key="0x…"),
+    SvmWallet(private_key="base58…"),
+])
+```
+
 ### BIP-39 Mnemonic (EVM)
 
 ```python
@@ -81,14 +82,27 @@ wallet = EvmWallet(mnemonic="…", account_index=2)                  # m/44'/60'
 wallet = EvmWallet(mnemonic="…", derivation_path="m/44'/60'/2'/0/0")  # custom path
 ```
 
-### Pre-built x402 Client
+The protocol selects the right chain automatically based on the server's payment requirements.
+
+### Payment Policies
+
+Use policies to control which chain or scheme is preferred when multiple payment options are available:
 
 ```python
-from x402 import x402ClientSync
+from x402_openai import X402OpenAI, prefer_network, prefer_scheme, max_amount
+from x402_openai.wallets import EvmWallet, SvmWallet
 
-x402 = x402ClientSync()
-# … register custom payment schemes …
-client = X402OpenAI(x402_client=x402)
+client = X402OpenAI(
+    wallets=[
+        EvmWallet(private_key="0x…"),
+        SvmWallet(private_key="base58…"),
+    ],
+    policies=[
+        prefer_network("eip155:8453"),  # Prefer Base mainnet
+        prefer_scheme("exact"),         # Prefer exact payment scheme
+        max_amount(1_000_000),          # Cap at 1 USDC (6 decimals)
+    ],
+)
 ```
 
 ## API Reference
@@ -101,7 +115,8 @@ Drop-in replacement for `openai.OpenAI` / `openai.AsyncOpenAI`. Provide **exactl
 | :-- | :-- | :-- |
 | `wallet` | `Wallet` | Single wallet adapter |
 | `wallets` | `list[Wallet]` | Multiple adapters (multi-chain) |
-| `x402_client` | `x402HTTPClient*` | Pre-configured x402 client |
+| `policies` | `list[Policy]` | Payment policies (chain/scheme preference, amount cap) |
+| `x402_client` | `x402HTTPClient*` | Pre-configured x402 client (bypasses `policies`) |
 
 All standard OpenAI kwargs (`base_url`, `timeout`, `max_retries`, …) are forwarded.
 Default `base_url`: `https://llm.qntx.fun/v1`
@@ -129,6 +144,8 @@ EVM_PRIVATE_KEY="0x…"           python examples/chat_evm.py
 SOLANA_PRIVATE_KEY="base58…"    python examples/chat_svm.py
 EVM_PRIVATE_KEY="0x…"           python examples/streaming_evm.py
 MNEMONIC="word1 word2 …"       python examples/chat_evm_mnemonic.py
+EVM_PRIVATE_KEY="0x…"           python examples/chat_evm_policy.py
+EVM_PRIVATE_KEY="0x…"           python examples/streaming_evm_policy.py
 ```
 
 ## License
