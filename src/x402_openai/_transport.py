@@ -32,6 +32,7 @@ def _clone_request_with_headers(
         url=original.url,
         headers=headers,
         content=original.content,
+        extensions=dict(original.extensions),
     )
 
 
