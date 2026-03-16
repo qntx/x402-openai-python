@@ -23,15 +23,24 @@ logger = logging.getLogger(__name__)
 def _clone_request_with_headers(
     original: httpx.Request,
     extra_headers: dict[str, str],
+    *,
+    content: bytes | None = None,
 ) -> httpx.Request:
-    """Clone *original* and merge *extra_headers* into the copy."""
+    """Clone *original* and merge *extra_headers* into the copy.
+
+    Parameters
+    ----------
+    content:
+        Optional explicit body bytes to use for the cloned request.
+        When omitted, ``original.content`` is used.
+    """
     headers = dict(original.headers)
     headers.update(extra_headers)
     return httpx.Request(
         method=original.method,
         url=original.url,
         headers=headers,
-        content=original.content,
+        content=original.content if content is None else content,
         extensions=dict(original.extensions),
     )
 
@@ -78,7 +87,14 @@ class X402Transport(httpx.BaseTransport):
             logger.exception("x402: payment signing failed")
             return response
 
-        retry = _clone_request_with_headers(request, payment_headers)
+        try:
+            body = request.content
+        except httpx.RequestNotRead:
+            # Some transports/proxies can short-circuit with 402 before consuming
+            # the request body. Ensure we materialize it so the retry is replayable.
+            body = request.read()
+
+        retry = _clone_request_with_headers(request, payment_headers, content=body)
         return self._inner.handle_request(retry)
 
     def close(self) -> None:
@@ -128,7 +144,14 @@ class AsyncX402Transport(httpx.AsyncBaseTransport):
             logger.exception("x402: payment signing failed")
             return response
 
-        retry = _clone_request_with_headers(request, payment_headers)
+        try:
+            body = request.content
+        except httpx.RequestNotRead:
+            # Some transports/proxies can short-circuit with 402 before consuming
+            # the request body. Ensure we materialize it so the retry is replayable.
+            body = await request.aread()
+
+        retry = _clone_request_with_headers(request, payment_headers, content=body)
         return await self._inner.handle_async_request(retry)
 
     async def aclose(self) -> None:
