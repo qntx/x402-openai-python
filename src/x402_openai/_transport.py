@@ -32,7 +32,8 @@ def _clone_request_with_headers(
     ----------
     content:
         Optional explicit body bytes to use for the cloned request.
-        When omitted, ``original.content`` is used.
+        When omitted, ``original.content`` is used and must already be
+        materialized by the caller.
     """
     headers = dict(original.headers)
     headers.update(extra_headers)
@@ -95,6 +96,7 @@ class X402Transport(httpx.BaseTransport):
             body = request.read()
 
         retry = _clone_request_with_headers(request, payment_headers, content=body)
+        response.close()
         return self._inner.handle_request(retry)
 
     def close(self) -> None:
@@ -152,6 +154,7 @@ class AsyncX402Transport(httpx.AsyncBaseTransport):
             body = await request.aread()
 
         retry = _clone_request_with_headers(request, payment_headers, content=body)
+        await response.aclose()
         return await self._inner.handle_async_request(retry)
 
     async def aclose(self) -> None:
