@@ -188,9 +188,9 @@ class X402MCPClient:
                     fake_headers,
                     response.content,
                 )
-            except Exception:
+            except Exception as exc:
                 logger.exception("x402-mcp: payment signing failed")
-                raise ValueError(f"x402 payment failed: {error}") from None
+                raise ValueError(f"x402 payment failed: {error}") from exc
 
             retry_params = _inject_payment(params, payment_headers)
             retry_body = _build_rpc_payload(method, retry_params, rpc_id)
@@ -208,7 +208,9 @@ class X402MCPClient:
         result = data.get("result")
         if result is None:
             raise ValueError(f"MCP response missing 'result' field: {data}")
-        return dict(result)
+        if not isinstance(result, dict):
+            raise ValueError(f"MCP 'result' is not a dict: {result!r}")
+        return result
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -296,9 +298,9 @@ class AsyncX402MCPClient:
                     fake_headers,
                     response.content,
                 )
-            except Exception:
+            except Exception as exc:
                 logger.exception("x402-mcp: payment signing failed")
-                raise ValueError(f"x402 payment failed: {error}") from None
+                raise ValueError(f"x402 payment failed: {error}") from exc
 
             retry_params = _inject_payment(params, payment_headers)
             retry_body = _build_rpc_payload(method, retry_params, rpc_id)
@@ -316,7 +318,9 @@ class AsyncX402MCPClient:
         result = data.get("result")
         if result is None:
             raise ValueError(f"MCP response missing 'result' field: {data}")
-        return dict(result)
+        if not isinstance(result, dict):
+            raise ValueError(f"MCP 'result' is not a dict: {result!r}")
+        return result
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client."""
