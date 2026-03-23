@@ -20,9 +20,22 @@ Quick start::
         policies=[prefer_network("eip155:8453")],
     )
 
+    # Generic HTTP (any endpoint)
+    session = create_x402_session(wallet=EvmWallet(private_key="0x…"))
+    resp = session.post("https://apibase.pro/api/v1/tools/weather/call",
+                        json={"city": "Tokyo"})
+
+    # MCP JSON-RPC
+    with X402MCPClient(wallet=EvmWallet(private_key="0x…"),
+                       base_url="https://apibase.pro") as mcp:
+        result = mcp.call("/mcp/v1", "tools/call",
+                          params={"name": "weather", "arguments": {"city": "Tokyo"}})
+
 Public API:
 
-- :class:`X402OpenAI` / :class:`AsyncX402OpenAI` — recommended client classes.
+- :class:`X402OpenAI` / :class:`AsyncX402OpenAI` — OpenAI drop-in clients.
+- :func:`create_x402_session` / :func:`create_async_x402_session` — generic httpx clients.
+- :class:`X402MCPClient` / :class:`AsyncX402MCPClient` — MCP JSON-RPC clients.
 - :class:`X402Transport` / :class:`AsyncX402Transport` — low-level transports.
 - :func:`prefer_network` / :func:`prefer_scheme` / :func:`max_amount` — payment policies.
 - :mod:`x402_openai.wallets` — chain-specific wallet adapters.
@@ -31,17 +44,23 @@ Public API:
 from __future__ import annotations
 
 from x402_openai._client import AsyncX402OpenAI, X402OpenAI
+from x402_openai._http import create_async_x402_session, create_x402_session
+from x402_openai._mcp import AsyncX402MCPClient, X402MCPClient
 from x402_openai._transport import AsyncX402Transport, X402Transport
 from x402_openai.wallets import EvmWallet, SvmWallet, Wallet
 
 __all__ = [
+    "AsyncX402MCPClient",
     "AsyncX402OpenAI",
     "AsyncX402Transport",
     "EvmWallet",
     "SvmWallet",
     "Wallet",
+    "X402MCPClient",
     "X402OpenAI",
     "X402Transport",
+    "create_async_x402_session",
+    "create_x402_session",
     # Lazily re-exported from x402 SDK.
     "max_amount",
     "prefer_network",

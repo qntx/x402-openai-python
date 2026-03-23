@@ -51,6 +51,9 @@ dev = [
     "build>=1.0",
 ]
 
+[project.scripts]
+create-x402-wallet = "x402_openai._cli:main"
+
 [project.urls]
 Homepage = "https://github.com/qntx/x402-openai-python"
 Repository = "https://github.com/qntx/x402-openai-python"
