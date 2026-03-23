@@ -23,8 +23,7 @@ def main() -> None:
         from eth_account import Account  # type: ignore[import-untyped]
     except ImportError:
         print(
-            "eth-account is required. Install with:\n"
-            "  pip install x402-openai[evm]",
+            "eth-account is required. Install with:\n  pip install x402-openai[evm]",
             file=sys.stderr,
         )
         sys.exit(1)

@@ -289,7 +289,9 @@ async def test_async_transport_passes_through_non_402_response() -> None:
     inner = _PassthroughAsyncTransport()
     transport = AsyncX402Transport(_FakeX402ClientAsync(), inner=inner)
 
-    response = await transport.handle_async_request(httpx.Request("GET", "https://example.com/v1/models"))
+    response = await transport.handle_async_request(
+        httpx.Request("GET", "https://example.com/v1/models")
+    )
 
     assert response.status_code == 200
     assert inner.calls == 1

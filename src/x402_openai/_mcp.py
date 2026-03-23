@@ -107,7 +107,7 @@ class X402MCPClient:
         :meth:`call`.
     """
 
-    __slots__ = ("_x402", "_http", "_base_url")
+    __slots__ = ("_base_url", "_http", "_x402")
 
     def __init__(
         self,
@@ -238,7 +238,7 @@ class AsyncX402MCPClient:
         Default URL prefix.
     """
 
-    __slots__ = ("_x402", "_http", "_base_url")
+    __slots__ = ("_base_url", "_http", "_x402")
 
     def __init__(
         self,
@@ -257,9 +257,7 @@ class AsyncX402MCPClient:
             policies=policies,
             sync=False,
         )
-        self._http = httpx.AsyncClient(
-            transport=AsyncX402Transport(self._x402, inner=_inner)
-        )
+        self._http = httpx.AsyncClient(transport=AsyncX402Transport(self._x402, inner=_inner))
         self._base_url = base_url or ""
 
     async def call(

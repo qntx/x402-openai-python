@@ -7,7 +7,6 @@ import pytest
 
 from x402_openai._http import create_async_x402_session, create_x402_session
 
-
 # ---------------------------------------------------------------------------
 # Fake x402 clients — no x402 SDK required.
 # ---------------------------------------------------------------------------
