@@ -20,7 +20,7 @@ import sys
 def main() -> None:
     """Entry-point for the ``create-x402-wallet`` command."""
     try:
-        from eth_account import Account  # type: ignore[import-untyped]
+        from eth_account import Account
     except ImportError:
         print(
             "eth-account is required. Install with:\n  pip install x402-openai[evm]",
