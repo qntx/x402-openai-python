@@ -162,7 +162,7 @@ class X402MCPClient:
         httpx.HTTPStatusError
             On non-2xx HTTP responses.
         """
-        full_url = url if url.startswith("http") else self._base_url + url
+        full_url = url if url.startswith(("http://", "https://")) else self._base_url + url
         body = _build_rpc_payload(method, params, rpc_id)
 
         response = self._http.post(
@@ -205,7 +205,10 @@ class X402MCPClient:
         if "error" in data:
             raise ValueError(f"MCP error: {data['error']}")
 
-        return dict(data.get("result") or data)
+        result = data.get("result")
+        if result is None:
+            raise ValueError(f"MCP response missing 'result' field: {data}")
+        return dict(result)
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -269,7 +272,7 @@ class AsyncX402MCPClient:
 
         Same contract as :meth:`X402MCPClient.call`.
         """
-        full_url = url if url.startswith("http") else self._base_url + url
+        full_url = url if url.startswith(("http://", "https://")) else self._base_url + url
         body = _build_rpc_payload(method, params, rpc_id)
 
         response = await self._http.post(
@@ -310,7 +313,10 @@ class AsyncX402MCPClient:
         if "error" in data:
             raise ValueError(f"MCP error: {data['error']}")
 
-        return dict(data.get("result") or data)
+        result = data.get("result")
+        if result is None:
+            raise ValueError(f"MCP response missing 'result' field: {data}")
+        return dict(result)
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client."""
