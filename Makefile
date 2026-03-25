@@ -7,30 +7,29 @@ help: ## Show this help
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install package in editable mode with all deps
-	pip install -e ".[dev,all]"
-	pre-commit install
+	uv sync --extra dev --extra all
+	uv run pre-commit install
 
 lint: ## Run ruff linter
-	ruff check .
+	uv run ruff check .
 
 format: ## Run ruff formatter (auto-fix)
-	ruff check --fix .
-	ruff format .
+	uv run ruff check --fix .
+	uv run ruff format .
 
 typecheck: ## Run mypy type checker
-	mypy src/x402_openai
+	uv run mypy src/x402_openai
 
 test: ## Run pytest
-	pytest
+	uv run pytest
 
 build: ## Build wheel and sdist
-	python -m build
+	uv build
 
 clean: ## Remove build artifacts
-	rm -rf dist/ build/ *.egg-info src/*.egg-info .mypy_cache .pytest_cache
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	uv run python -c "import shutil, pathlib; [shutil.rmtree(p, ignore_errors=True) for p in ['dist', 'build', '.mypy_cache', '.pytest_cache']]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('__pycache__')]; [shutil.rmtree(p) for p in pathlib.Path('.').rglob('*.egg-info')]"
 
 check: ## Run all pre-commit hooks (lint + format + typecheck)
-	pre-commit run --all-files
+	uv run pre-commit run --all-files
 
 all: check test ## Run all checks + tests
