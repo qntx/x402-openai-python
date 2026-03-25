@@ -11,10 +11,6 @@ from x402_openai._wallet import _resolve_wallets
 from x402_openai.wallets._evm import EvmWallet
 from x402_openai.wallets._svm import SvmWallet
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 _DEFAULTS: dict[str, Any] = dict(
     wallet=None,
     wallets=None,
@@ -25,11 +21,6 @@ _DEFAULTS: dict[str, Any] = dict(
 def _resolve(**overrides: Any) -> Any:
     """Call _resolve_wallets with defaults merged with *overrides*."""
     return _resolve_wallets(**{**_DEFAULTS, **overrides})
-
-
-# ---------------------------------------------------------------------------
-# Credential resolution
-# ---------------------------------------------------------------------------
 
 
 class TestResolveWallets:
@@ -63,11 +54,6 @@ class TestResolveWallets:
     def test_empty_wallets_treated_as_missing(self) -> None:
         with pytest.raises(ValueError, match="exactly one"):
             _resolve(wallets=[])
-
-
-# ---------------------------------------------------------------------------
-# Build client (mocked — no x402 SDK needed)
-# ---------------------------------------------------------------------------
 
 
 class TestBuildClient:

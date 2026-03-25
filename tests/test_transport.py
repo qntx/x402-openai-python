@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import httpx
-import pytest
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator, Iterator
@@ -270,7 +269,6 @@ async def _aiter_json() -> AsyncIterator[bytes]:
     yield b'"hi"}'
 
 
-@pytest.mark.asyncio
 async def test_async_transport_retries_even_if_402_response_short_circuits_body() -> None:
     inner = _ShortCircuit402AsyncTransport()
     transport = AsyncX402Transport(_FakeX402ClientAsync(), inner=inner)
@@ -284,7 +282,6 @@ async def test_async_transport_retries_even_if_402_response_short_circuits_body(
     assert inner.retry_body == b'{"prompt":"hi"}'
 
 
-@pytest.mark.asyncio
 async def test_async_transport_passes_through_non_402_response() -> None:
     inner = _PassthroughAsyncTransport()
     transport = AsyncX402Transport(_FakeX402ClientAsync(), inner=inner)
@@ -295,7 +292,6 @@ async def test_async_transport_passes_through_non_402_response() -> None:
     assert inner.calls == 1
 
 
-@pytest.mark.asyncio
 async def test_async_transport_returns_original_402_when_signing_fails() -> None:
     inner = _ShortCircuit402AsyncTransport()
     transport = AsyncX402Transport(_FailingX402ClientAsync(), inner=inner)
@@ -308,7 +304,6 @@ async def test_async_transport_returns_original_402_when_signing_fails() -> None
     assert inner.calls == 1
 
 
-@pytest.mark.asyncio
 async def test_async_transport_closes_original_402_before_retry() -> None:
     inner = _CloseTracking402AsyncTransport()
     transport = AsyncX402Transport(_FakeX402ClientAsync(), inner=inner)
@@ -322,7 +317,6 @@ async def test_async_transport_closes_original_402_before_retry() -> None:
     assert inner.first_response_closed is True
 
 
-@pytest.mark.asyncio
 async def test_async_transport_aclose_delegates_to_inner_transport() -> None:
     inner = _CloseDelegatingAsyncTransport()
     transport = AsyncX402Transport(_FakeX402ClientAsync(), inner=inner)

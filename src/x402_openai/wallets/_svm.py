@@ -31,12 +31,15 @@ class SvmWallet:
         wallet = SvmWallet(private_key="base58…")
     """
 
+    __slots__ = ("_private_key",)
+
     def __init__(self, *, private_key: str) -> None:
         if not private_key:
             raise ValueError("SvmWallet requires a non-empty 'private_key'.")
         self._private_key = private_key
 
-    # -- Wallet protocol ---------------------------------------------------
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(private_key='***')"
 
     def register(self, client: Any) -> None:
         """Register the SVM exact payment scheme on *client*."""

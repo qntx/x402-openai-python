@@ -47,6 +47,8 @@ class EvmWallet:
         wallet = EvmWallet(mnemonic="word1 …", account_index=2)
     """
 
+    __slots__ = ("_account_index", "_derivation_path", "_mnemonic", "_passphrase", "_private_key")
+
     def __init__(
         self,
         *,
@@ -70,7 +72,9 @@ class EvmWallet:
         self._derivation_path = derivation_path
         self._passphrase = passphrase
 
-    # -- Wallet protocol ---------------------------------------------------
+    def __repr__(self) -> str:
+        source = "private_key" if self._private_key is not None else "mnemonic"
+        return f"{type(self).__name__}({source}='***')"
 
     def register(self, client: Any) -> None:
         """Register the EVM exact payment scheme on *client*."""
@@ -80,8 +84,6 @@ class EvmWallet:
         account = self._resolve_account()
         signer = EthAccountSigner(account)
         register_exact_evm_client(client, signer)
-
-    # -- Internal helpers ---------------------------------------------------
 
     def _resolve_account(self) -> Any:
         """Lazily derive the ``eth_account.Account`` from stored credentials."""

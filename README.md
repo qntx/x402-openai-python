@@ -1,6 +1,8 @@
+<!-- markdownlint-disable MD033 MD041 MD036 -->
+
 <div align="center">
 
-# x402-openai
+# x402 OpenAI Python
 
 **Drop-in OpenAI Python client with transparent [x402](https://www.x402.org/) payment support.**
 

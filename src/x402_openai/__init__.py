@@ -49,12 +49,6 @@ __all__ = [
 ]
 
 
-# ---------------------------------------------------------------------------
-# Lazy re-exports of x402 policy helpers.
-# Avoids a hard import-time dependency on the x402 package so that
-# ``import x402_openai`` never fails even if x402 is not installed yet.
-# ---------------------------------------------------------------------------
-
 _X402_POLICY_NAMES = {"prefer_network", "prefer_scheme", "max_amount"}
 
 

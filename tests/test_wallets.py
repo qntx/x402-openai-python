@@ -8,10 +8,6 @@ from x402_openai.wallets._base import Wallet
 from x402_openai.wallets._evm import EvmWallet
 from x402_openai.wallets._svm import SvmWallet
 
-# ---------------------------------------------------------------------------
-# Wallet protocol conformance
-# ---------------------------------------------------------------------------
-
 
 class TestWalletProtocol:
     """Verify that wallet classes satisfy the Wallet protocol."""
@@ -23,11 +19,6 @@ class TestWalletProtocol:
     def test_svm_wallet_is_wallet(self) -> None:
         w = SvmWallet(private_key="abc123")
         assert isinstance(w, Wallet)
-
-
-# ---------------------------------------------------------------------------
-# EvmWallet validation
-# ---------------------------------------------------------------------------
 
 
 class TestEvmWallet:
@@ -68,11 +59,6 @@ class TestEvmWallet:
         assert w._derivation_path == "m/44'/60'/2'/0/0"
 
 
-# ---------------------------------------------------------------------------
-# SvmWallet validation
-# ---------------------------------------------------------------------------
-
-
 class TestSvmWallet:
     """Test SvmWallet __init__ validation logic."""
 
@@ -83,3 +69,25 @@ class TestSvmWallet:
     def test_accepts_private_key(self) -> None:
         w = SvmWallet(private_key="base58key")
         assert w._private_key == "base58key"
+
+
+class TestWalletRepr:
+    """Verify __repr__ never leaks secrets."""
+
+    def test_evm_key_repr_masks_secret(self) -> None:
+        w = EvmWallet(private_key="0xdeadbeef")
+        r = repr(w)
+        assert "0xdeadbeef" not in r
+        assert "private_key='***'" in r
+
+    def test_evm_mnemonic_repr_masks_secret(self) -> None:
+        w = EvmWallet(mnemonic="word1 word2 word3")
+        r = repr(w)
+        assert "word1" not in r
+        assert "mnemonic='***'" in r
+
+    def test_svm_repr_masks_secret(self) -> None:
+        w = SvmWallet(private_key="base58secretkey")
+        r = repr(w)
+        assert "base58secretkey" not in r
+        assert "private_key='***'" in r
